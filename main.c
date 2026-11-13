@@ -1,0 +1,52 @@
+
+#include "team.h"
+#include "teamlist.h"
+#include <stdio.h>
+
+int main(void) {
+    TeamList *tl = tl_create();
+
+    if (tl == NULL)
+        return 1;
+
+    FILE *f = fopen("teams.csv", "r");
+
+    if (f == NULL) {
+        tl_free(tl);
+        return 1;
+    }
+
+    int id;
+    char name[50];
+
+    while (fscanf(f, "%d,%49[^\n]", &id, name) == 2) {
+        Team *t = team_create(id, name);
+        tl_append(tl, t);
+    }
+
+    fclose(f);
+
+    printf("ID  Time            V   E   D   GM  GS  S   PG\n");
+
+    for (int i = 0; i < tl_size(tl); i++) {
+        Team *t = tl_get(tl, i);
+
+        int saldo = team_goals_scored(t) - team_goals_conceded(t);
+        int pontos = 3 * team_wins(t) + team_draws(t);
+
+        printf("%-3d %-15s", team_id(t), team_name(t));
+
+        printf(" %-3d %-3d %-3d %-3d %-3d %-3d %-3d\n",
+               team_wins(t),
+               team_draws(t),
+               team_losses(t),
+               team_goals_scored(t),
+               team_goals_conceded(t),
+               saldo,
+               pontos);
+    }
+
+    tl_free(tl);
+
+    return 0;
+}
